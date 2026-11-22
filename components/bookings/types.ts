@@ -3,6 +3,7 @@ export interface BookingParty {
   name?: string;
   email?: string;
   image?: string | null;
+  businessName?: string | null;
 }
 
 export interface BookingServiceSummary {
