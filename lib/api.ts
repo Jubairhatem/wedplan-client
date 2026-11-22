@@ -6,10 +6,18 @@ interface FetchOptions extends RequestInit {
   withAuth?: boolean;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
+  pagination?: PaginationMeta;
   errors?: Record<string, string[]>;
 }
 
