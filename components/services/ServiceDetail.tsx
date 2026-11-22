@@ -17,6 +17,7 @@ import {
   Store,
 } from "lucide-react";
 import { fetchAPI, ApiError } from "@/lib/api";
+import { BookingDialog } from "@/components/services/BookingDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -320,7 +321,12 @@ export function ServiceDetail({ serviceId }: ServiceDetailProps) {
                 )}
               </div>
 
-              {/* CTA is added with the booking dialog (C-17) */}
+              <BookingDialog
+                serviceId={service._id}
+                serviceName={service.serviceName}
+              />
+
+              {/* Trust points */}
               <div className="space-y-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-primary" />
