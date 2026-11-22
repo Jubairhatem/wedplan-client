@@ -265,7 +265,8 @@ export default function AdminServicesPage() {
         />
       ) : (
         <div className="rounded-2xl border border-border/70 bg-card overflow-hidden">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Service</TableHead>
@@ -376,6 +377,7 @@ export default function AdminServicesPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>

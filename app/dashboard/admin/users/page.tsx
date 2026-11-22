@@ -222,7 +222,8 @@ export default function AdminUsersPage() {
         />
       ) : (
         <div className="rounded-2xl border border-border/70 bg-card overflow-hidden">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
@@ -308,6 +309,7 @@ export default function AdminUsersPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
 

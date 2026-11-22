@@ -164,7 +164,8 @@ export default function VendorServicesPage() {
         <>
           {/* Desktop table */}
           <div className="hidden md:block rounded-2xl border border-border/70 bg-card overflow-hidden">
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Service</TableHead>
@@ -250,6 +251,7 @@ export default function VendorServicesPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </div>
 
           {/* Mobile cards */}
