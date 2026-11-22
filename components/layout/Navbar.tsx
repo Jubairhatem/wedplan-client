@@ -120,23 +120,25 @@ export function Navbar() {
             <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
           ) : session?.user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-10 w-10 rounded-full p-0 ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src={user?.image || ""}
-                      alt={user?.name || "User"}
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
-                      {getInitials(user?.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full p-0 ring-2 ring-primary/20 hover:ring-primary/40 transition-all cursor-pointer"
+                  />
+                }
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={user?.image || ""}
+                    alt={user?.name || "User"}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                    {getInitials(user?.name)}
+                  </AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-semibold leading-none text-foreground">
@@ -161,23 +163,27 @@ export function Navbar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={getDashboardHref()}
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
-                    <span>Dashboard</span>
-                  </Link>
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      href={getDashboardHref()}
+                      className="cursor-pointer flex items-center gap-2"
+                    />
+                  }
+                >
+                  <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
+                  <span>Dashboard</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/dashboard/profile"
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span>Profile Settings</span>
-                  </Link>
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      href="/dashboard/profile"
+                      className="cursor-pointer flex items-center gap-2"
+                    />
+                  }
+                >
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span>Profile Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -211,12 +217,14 @@ export function Navbar() {
         {/* Mobile Hamburger Menu */}
         <div className="flex md:hidden items-center gap-2">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Menu className="w-5 h-5" />
-                <span className="sr-only">Toggle navigation</span>
-              </Button>
-            </SheetTrigger>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Menu className="w-5 h-5" />
+                  <span className="sr-only">Toggle navigation</span>
+                </Button>
+              }
+            />
             <SheetContent side="right" className="w-72">
               <SheetHeader className="text-left pb-4 border-b">
                 <SheetTitle className="flex items-center gap-2 font-heading">

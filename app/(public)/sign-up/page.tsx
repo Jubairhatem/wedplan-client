@@ -38,9 +38,7 @@ const signUpSchema = z.object({
     .min(6, "Password must be at least 6 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter"),
-  role: z.enum(["customer", "vendor"], {
-    required_error: "Please select a role",
-  }),
+  role: z.enum(["customer", "vendor"]),
   businessName: z.string().optional(),
 });
 
@@ -155,7 +153,11 @@ export default function SignUpPage() {
               <Label htmlFor="role">I want to</Label>
               <Select
                 defaultValue="customer"
-                onValueChange={(val: "customer" | "vendor") => setValue("role", val)}
+                onValueChange={(val) => {
+                  if (val === "customer" || val === "vendor") {
+                    setValue("role", val);
+                  }
+                }}
               >
                 <SelectTrigger id="role" className="w-full">
                   <SelectValue placeholder="Select account type" />

@@ -60,13 +60,14 @@ export const auth = betterAuth({
       create: {
         before: async (user) => {
           // Reject any attempt to register directly as admin
-          if (user.role === "admin") {
+          const role = (user as any).role;
+          if (role === "admin") {
             throw new Error(
               "Admin registration is not permitted via public sign-up"
             );
           }
-          if (user.role && !["customer", "vendor"].includes(user.role)) {
-            user.role = "customer";
+          if (role && !["customer", "vendor"].includes(role)) {
+            (user as any).role = "customer";
           }
           return { data: user };
         },

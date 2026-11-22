@@ -1,36 +1,45 @@
-"use server";
-
 import jwt from "jsonwebtoken";
-import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 /**
- * Server action to generate/retrieve a JWT token for calling the Express backend
+ * Creates a signed JWT for the Express backend
  */
-export async function getBackendToken(): Promise<string | null> {
+export function createBackendTokenForUser(user: {
+  id: string;
+  email: string;
+  role?: string;
+}): string | null {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error("JWT_SECRET is not configured");
+    return null;
+  }
+
+  const payload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role || "customer",
+  };
+
+  return jwt.sign(payload, secret, { expiresIn: "1h" });
+}
+
+/**
+ * Retrieves the session and signs a backend JWT using the incoming request headers
+ */
+export async function getBackendToken(
+  headersList: Headers
+): Promise<string | null> {
   try {
     const session = await auth.api.getSession({
-      headers: await headers(),
+      headers: headersList,
     });
 
     if (!session || !session.user) {
       return null;
     }
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error("JWT_SECRET is not configured");
-      return null;
-    }
-
-    const payload = {
-      userId: session.user.id,
-      email: session.user.email,
-      role: (session.user as any).role || "customer",
-    };
-
-    const token = jwt.sign(payload, secret, { expiresIn: "1h" });
-    return token;
+    return createBackendTokenForUser(session.user as any);
   } catch (error) {
     console.error("Failed to generate backend token:", error);
     return null;

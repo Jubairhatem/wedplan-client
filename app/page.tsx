@@ -2,6 +2,7 @@ import { HeroBanner } from "@/components/home/HeroBanner";
 import { FeaturedServices } from "@/components/home/FeaturedServices";
 import { CategoriesSection } from "@/components/home/CategoriesSection";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
+import { HowItWorks } from "@/components/home/HowItWorks";
 
 export default function HomePage() {
   return (
@@ -10,6 +11,7 @@ export default function HomePage() {
       <FeaturedServices />
       <CategoriesSection />
       <WhyChooseUs />
+      <HowItWorks />
     </div>
   );
 }
