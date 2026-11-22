@@ -82,12 +82,12 @@ export default function AdminServicesPage() {
       params.set("page", "1");
       params.set("limit", "20");
 
-      const res = await fetchAPI<{ data: AdminService[]; pagination: typeof pagination }>(
+      const res = await fetchAPI<AdminService[]>(
         `/admin/services?${params.toString()}`,
         { withAuth: true }
       );
       setServices(res.data ?? []);
-      setPagination(res.pagination ?? null);
+      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(

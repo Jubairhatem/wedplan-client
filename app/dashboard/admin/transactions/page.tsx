@@ -54,12 +54,12 @@ export default function AdminTransactionsPage() {
       params.set("page", "1");
       params.set("limit", "20");
 
-      const res = await fetchAPI<{ data: AdminTransaction[]; pagination: typeof pagination }>(
+      const res = await fetchAPI<AdminTransaction[]>(
         `/admin/transactions?${params.toString()}`,
         { withAuth: true }
       );
       setTransactions(res.data ?? []);
-      setPagination(res.pagination ?? null);
+      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(

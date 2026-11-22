@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Search, User, Users, ShieldCheck, RefreshCw } from "lucide-react";
+import { Search, User, Users, ShieldCheck, RefreshCw, Crown } from "lucide-react";
 import { fetchAPI } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -69,12 +69,12 @@ export default function AdminUsersPage() {
       params.set("page", "1");
       params.set("limit", "20");
 
-      const res = await fetchAPI<{ data: AdminUser[]; pagination: typeof pagination }>(
+      const res = await fetchAPI<AdminUser[]>(
         `/admin/users?${params.toString()}`,
         { withAuth: true }
       );
       setUsers(res.data ?? []);
-      setPagination(res.pagination ?? null);
+      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(
