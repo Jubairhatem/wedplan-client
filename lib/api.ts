@@ -1,7 +1,9 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 interface FetchOptions extends RequestInit {
   token?: string;
+  withAuth?: boolean;
 }
 
 interface ApiResponse<T = unknown> {
@@ -23,17 +25,34 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * Robust fetch wrapper for communication with the Express backend
+ */
 async function fetchAPI<T = unknown>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { token, headers: customHeaders, ...fetchOptions } = options;
+  let { token } = options;
+  const { withAuth, headers: customHeaders, ...fetchOptions } = options;
+
+  // If auth is requested but token wasn't directly passed, try to fetch it client-side
+  if (withAuth && !token && typeof window !== "undefined") {
+    try {
+      const tokenRes = await fetch("/api/auth/token");
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json();
+        token = tokenData.token;
+      }
+    } catch (e) {
+      console.warn("Failed to retrieve auth token for request");
+    }
+  }
 
   const headers: Record<string, string> = {
     ...(customHeaders as Record<string, string>),
   };
 
-  // Don't set Content-Type for FormData (browser sets it with boundary)
+  // Don't set Content-Type for FormData (browser sets boundary automatically)
   if (!(fetchOptions.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
@@ -55,7 +74,7 @@ async function fetchAPI<T = unknown>(
 
     if (!response.ok) {
       throw new ApiError(
-        data.message || "Something went wrong",
+        data.message || `Request failed with status ${response.status}`,
         response.status,
         data
       );
@@ -66,7 +85,10 @@ async function fetchAPI<T = unknown>(
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError("Network error. Please check your connection.", 0);
+    throw new ApiError(
+      error instanceof Error ? error.message : "Network error",
+      0
+    );
   }
 }
 
