@@ -14,9 +14,10 @@ import {
 } from "lucide-react";
 import { fetchAPI, type PaginationMeta } from "@/lib/api";
 import { ServiceCard, type ServiceItem } from "@/components/services/ServiceCard";
+import { ServiceGridSkeleton } from "@/components/services/ServiceCardSkeleton";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
-import { Loader } from "@/components/ui/Loader";
 import {
   Select,
   SelectContent,
@@ -360,7 +361,7 @@ export function BrowseServices() {
 
         {/* Content */}
         {isLoading ? (
-          <Loader size="lg" text="Finding beautiful services for you..." className="py-24" />
+          <ServiceGridSkeleton count={PAGE_SIZE} />
         ) : hasFailed ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-destructive/40 bg-destructive/5 px-6 py-16 text-center">
             <p className="text-sm text-muted-foreground">
@@ -375,23 +376,13 @@ export function BrowseServices() {
             </Button>
           </div>
         ) : services.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border/80 bg-card/40 px-6 py-16 text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-              <Search className="w-7 h-7" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-heading text-lg font-semibold">
-                No services found
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Try adjusting your search or filters to discover more wedding
-                vendors.
-              </p>
-            </div>
-            <Button variant="outline" onClick={resetFilters}>
-              Reset filters
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title="No services found"
+            description="Try adjusting your search or filters to discover more wedding vendors."
+            actionLabel="Reset filters"
+            onAction={resetFilters}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {services.map((service) => (
