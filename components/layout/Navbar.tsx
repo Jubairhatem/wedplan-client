@@ -1,19 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -30,8 +22,6 @@ import {
   User,
   LogOut,
   Calendar,
-  Store,
-  Shield,
 } from "lucide-react";
 
 export function Navbar() {
@@ -39,8 +29,25 @@ export function Navbar() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const user = session?.user as any;
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Defer session-based rendering until mounted so the initial client render
+  // matches the server-rendered HTML (avoids React hydration mismatch).
+  const effectiveSession = isMounted ? session : undefined;
+  const effectiveIsPending = isMounted ? isPending : true;
+
+  type WedPlanUser = {
+    role?: string | undefined;
+    image?: string | null | undefined;
+    name?: string | null | undefined;
+  };
+
+  const user = effectiveSession?.user as WedPlanUser | undefined;
   const role = user?.role || "customer";
 
   const getDashboardHref = () => {
@@ -70,7 +77,7 @@ export function Navbar() {
     { label: "Browse Services", href: "/services" },
   ];
 
-  const getInitials = (name?: string) => {
+  const getInitials = (name?: string | null | undefined) => {
     if (!name) return "WP";
     const parts = name.trim().split(" ");
     if (parts.length >= 2) {
@@ -116,17 +123,14 @@ export function Navbar() {
 
         {/* Desktop Auth State */}
         <div className="hidden md:flex items-center gap-3">
-          {isPending ? (
+          {effectiveIsPending ? (
             <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
-          ) : session?.user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    className="relative h-10 w-10 rounded-full p-0 ring-2 ring-primary/20 hover:ring-primary/40 transition-all cursor-pointer"
-                  />
-                }
+          ) : effectiveSession?.user ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => router.push(getDashboardHref())}
+                className="relative h-10 w-10 rounded-full p-0 ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
               >
                 <Avatar className="h-9 w-9">
                   <AvatarImage
@@ -137,64 +141,16 @@ export function Navbar() {
                     {getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-semibold leading-none text-foreground">
-                      {user?.name}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                    <div className="pt-1 flex items-center gap-1.5">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary uppercase">
-                        {role === "admin" && <Shield className="w-2.5 h-2.5 mr-1" />}
-                        {role === "vendor" && <Store className="w-2.5 h-2.5 mr-1" />}
-                        {role === "customer" && <Heart className="w-2.5 h-2.5 mr-1" />}
-                        {role}
-                      </span>
-                      {user?.subscriptionPlan === "premium" && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                          PRO
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  render={
-                    <Link
-                      href={getDashboardHref()}
-                      className="cursor-pointer flex items-center gap-2"
-                    />
-                  }
-                >
-                  <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  render={
-                    <Link
-                      href="/dashboard/profile"
-                      className="cursor-pointer flex items-center gap-2"
-                    />
-                  }
-                >
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span>Profile Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSignOut}
+                className="hidden sm:flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log out</span>
+              </Button>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" asChild size="sm">
@@ -234,7 +190,7 @@ export function Navbar() {
               </SheetHeader>
 
               <div className="py-4 flex flex-col space-y-3">
-                {session?.user && (
+                {effectiveSession?.user && (
                   <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-3 mb-2">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user?.image || ""} />
@@ -262,7 +218,7 @@ export function Navbar() {
                   </Link>
                 ))}
 
-                {session?.user ? (
+                {effectiveSession?.user ? (
                   <>
                     <Link
                       href={getDashboardHref()}

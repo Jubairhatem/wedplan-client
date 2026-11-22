@@ -42,7 +42,6 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
-  const [pagination, setPagination] = useState<{ total: number; page: number; limit: number; totalPages: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasFailed, setHasFailed] = useState(false);
 
@@ -59,7 +58,6 @@ export default function AdminTransactionsPage() {
         { withAuth: true }
       );
       setTransactions(res.data ?? []);
-      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(
@@ -71,8 +69,40 @@ export default function AdminTransactionsPage() {
   }, []);
 
   useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const params = new URLSearchParams();
+        params.set("page", "1");
+        params.set("limit", "20");
+
+        const res = await fetchAPI<AdminTransaction[]>(
+          `/admin/transactions?${params.toString()}`,
+          { withAuth: true }
+        );
+        if (!cancelled) setTransactions(res.data ?? []);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to load transactions"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const statusBadge = (status: string) => {
     return (

@@ -58,8 +58,33 @@ export default function VendorOverviewPage() {
   }, []);
 
   useEffect(() => {
-    loadOverview();
-  }, [loadOverview]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<VendorOverview>("/vendor/overview", {
+          withAuth: true,
+        });
+        if (!cancelled) setOverview(res.data ?? null);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load your overview"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div>

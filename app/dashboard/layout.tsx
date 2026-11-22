@@ -145,8 +145,19 @@ export default function DashboardLayout({
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const user = session?.user as
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Defer session-based rendering until mounted so the initial client render
+  // matches the server-rendered HTML (avoids React hydration mismatch).
+  const effectiveSession = isMounted ? session : undefined;
+  const effectiveIsPending = isMounted ? isPending : true;
+
+  const user = effectiveSession?.user as
     | {
         name?: string;
         email?: string;
@@ -165,9 +176,9 @@ export default function DashboardLayout({
 
   // Client-side role guard (the server is still the source of truth)
   useEffect(() => {
-    if (isPending) return;
+    if (effectiveIsPending) return;
 
-    if (!session?.user) {
+    if (!effectiveSession?.user) {
       router.replace(`/sign-in?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
@@ -181,9 +192,9 @@ export default function DashboardLayout({
       toast.error("You don't have access to that dashboard.");
       router.replace(`/dashboard/${role}`);
     }
-  }, [isPending, session, pathname, role, router]);
+  }, [isPending, session, pathname, role, router, effectiveSession, effectiveIsPending]);
 
-  if (isPending || !session?.user) {
+  if (effectiveIsPending || !effectiveSession?.user) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader size="lg" text="Preparing your dashboard..." />

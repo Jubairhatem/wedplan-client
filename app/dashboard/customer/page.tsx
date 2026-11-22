@@ -54,8 +54,33 @@ export default function CustomerOverviewPage() {
   }, []);
 
   useEffect(() => {
-    loadOverview();
-  }, [loadOverview]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<CustomerOverview>("/customer/overview", {
+          withAuth: true,
+        });
+        if (!cancelled) setOverview(res.data ?? null);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load your overview"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const firstName = (session?.user?.name || "there").split(" ")[0];
 

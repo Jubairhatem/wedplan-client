@@ -53,15 +53,15 @@ export default function PaymentSuccessPage() {
   };
 
   useEffect(() => {
-    if (!sessionId) {
-      setIsLoading(false);
-      setHasFailed(true);
-      return;
-    }
-
     let cancelled = false;
 
-    async function poll() {
+    async function run() {
+      if (!sessionId) {
+        setIsLoading(false);
+        setHasFailed(true);
+        return;
+      }
+
       setIsPolling(true);
       try {
         const data = await fetchSession();
@@ -94,7 +94,29 @@ export default function PaymentSuccessPage() {
       }
     }
 
-    poll();
+    async function poll() {
+      const data = await fetchSession();
+      if (cancelled) return;
+      if (data?.status === "paid") {
+        setIsLoading(false);
+        setIsPolling(false);
+        toast.success("Your Premium subscription is now active.");
+        return;
+      }
+      if (data?.status === "failed" || data?.status === "expired") {
+        setIsLoading(false);
+        setIsPolling(false);
+        setHasFailed(true);
+        toast.error(
+          `Payment ${data.status}. Please try again or contact support.`
+        );
+        return;
+      }
+      // Still pending — keep polling
+      setTimeout(poll, 3000);
+    }
+
+    run();
 
     return () => {
       cancelled = true;

@@ -46,7 +46,9 @@ async function fetchAPI<T = unknown>(
   // If auth is requested but token wasn't directly passed, try to fetch it client-side
   if (withAuth && !token && typeof window !== "undefined") {
     try {
-      const tokenRes = await fetch("/api/auth/token");
+      const tokenRes = await fetch("/api/auth/token", {
+        credentials: "include",
+      });
       if (tokenRes.ok) {
         const tokenData = await tokenRes.json();
         token = tokenData.token;

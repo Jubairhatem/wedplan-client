@@ -95,7 +95,7 @@ export default function SignUpPage() {
         role: data.role,
         image: imageUrl,
         businessName: data.role === "vendor" ? data.businessName : undefined,
-      } as any);
+      } as Parameters<typeof signUp.email>[0]);
 
       if (res?.error) {
         toast.error(res.error.message || "Failed to create account");
@@ -111,8 +111,8 @@ export default function SignUpPage() {
       } else {
         router.push("/dashboard/customer");
       }
-    } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -125,8 +125,8 @@ export default function SignUpPage() {
         provider: "google",
         callbackURL: "/dashboard/customer",
       });
-    } catch (error: any) {
-      toast.error(error.message || "Google sign-in failed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Google sign-in failed");
       setIsGoogleLoading(false);
     }
   };

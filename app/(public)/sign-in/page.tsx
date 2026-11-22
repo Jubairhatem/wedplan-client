@@ -59,7 +59,7 @@ function SignInForm() {
       }
 
       // Check if user is blocked
-      const user = res?.data?.user as any;
+      const user = res?.data?.user as { role?: string; isBlocked?: boolean } | undefined;
       if (user?.isBlocked) {
         await signOut();
         toast.error("Your account has been suspended. Please contact support.");
@@ -88,8 +88,8 @@ function SignInForm() {
           router.push("/dashboard/customer");
           break;
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in. Please try again.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to sign in. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -102,8 +102,8 @@ function SignInForm() {
         provider: "google",
         callbackURL: redirectUrl || "/dashboard/customer",
       });
-    } catch (error: any) {
-      toast.error(error.message || "Google sign-in failed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Google sign-in failed");
       setIsGoogleLoading(false);
     }
   };

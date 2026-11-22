@@ -73,8 +73,35 @@ export default function VendorServicesPage() {
   }, []);
 
   useEffect(() => {
-    loadServices();
-  }, [loadServices]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<VendorService[]>("/vendor/services", {
+          withAuth: true,
+        });
+        if (!cancelled) setServices(res.data ?? []);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to load your services"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const toggleAvailability = async (service: VendorService) => {
     setBusyId(service._id);

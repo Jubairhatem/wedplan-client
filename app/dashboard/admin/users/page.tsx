@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Search, User, Users, ShieldCheck, RefreshCw, Crown } from "lucide-react";
+import { Search, Users, RefreshCw, Crown } from "lucide-react";
 import { fetchAPI } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const ROLE_FILTERS = [
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [pagination, setPagination] = useState<{ total: number; page: number; limit: number; totalPages: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasFailed, setHasFailed] = useState(false);
   const [search, setSearch] = useState("");
@@ -74,7 +72,6 @@ export default function AdminUsersPage() {
         { withAuth: true }
       );
       setUsers(res.data ?? []);
-      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(
@@ -86,8 +83,40 @@ export default function AdminUsersPage() {
   }, [search, roleFilter]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set("search", search);
+        if (roleFilter !== "all") params.set("role", roleFilter);
+        params.set("page", "1");
+        params.set("limit", "20");
+
+        const res = await fetchAPI<AdminUser[]>(
+          `/admin/users?${params.toString()}`,
+          { withAuth: true }
+        );
+        if (!cancelled) setUsers(res.data ?? []);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load users"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [search, roleFilter]);
 
   const confirmBlock = (user: AdminUser, block: boolean) => {
     setBlockTarget({ id: user.id, name: user.name, block });

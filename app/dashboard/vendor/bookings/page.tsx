@@ -74,8 +74,35 @@ export default function VendorBookingsPage() {
   }, []);
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<BookingItem[]>("/vendor/bookings", {
+          withAuth: true,
+        });
+        if (!cancelled) setBookings(res.data ?? []);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to load booking requests"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const counts = useMemo(() => {
     return BOOKING_STATUSES.reduce<Record<string, number>>(

@@ -53,8 +53,35 @@ export default function AdminOverviewPage() {
   }, []);
 
   useEffect(() => {
-    loadOverview();
-  }, [loadOverview]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<AdminOverview>("/admin/overview", {
+          withAuth: true,
+        });
+        if (!cancelled) setOverview(res.data ?? null);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to load admin overview"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (isLoading) {
     return (

@@ -70,11 +70,15 @@ export function BrowseServices() {
 
   // Keep the text inputs aligned with the URL (e.g. when filters are reset)
   useEffect(() => {
-    setSearchInput(search);
+    (async () => {
+      setSearchInput(search);
+    })();
   }, [search]);
 
   useEffect(() => {
-    setLocationInput(location);
+    (async () => {
+      setLocationInput(location);
+    })();
   }, [location]);
 
   const updateParams = useCallback(

@@ -39,7 +39,7 @@ export async function getBackendToken(
       return null;
     }
 
-    return createBackendTokenForUser(session.user as any);
+    return createBackendTokenForUser(session.user as { id: string; email: string; role?: string });
   } catch (error) {
     console.error("Failed to generate backend token:", error);
     return null;

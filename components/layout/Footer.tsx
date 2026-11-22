@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart, Mail, MapPin, Phone } from "lucide-react";
 
@@ -8,7 +8,9 @@ export function Footer() {
   const [currentYear, setCurrentYear] = useState(2026);
 
   useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
+    (async () => {
+      setCurrentYear(new Date().getFullYear());
+    })();
   }, []);
 
   return (

@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Search, Store, Clock, RefreshCw } from "lucide-react";
+import { Search, Store, RefreshCw } from "lucide-react";
 import { fetchAPI } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface AdminService {
   _id: string;
@@ -53,13 +51,11 @@ const STATUS_FILTERS = [
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState<AdminService[]>([]);
-  const [pagination, setPagination] = useState<{ total: number; page: number; limit: number; totalPages: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasFailed, setHasFailed] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [editTarget, setEditTarget] = useState<AdminService | null>(null);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   const CATEGORIES = [
@@ -87,7 +83,6 @@ export default function AdminServicesPage() {
         { withAuth: true }
       );
       setServices(res.data ?? []);
-      setPagination((res as any).pagination ?? null);
     } catch (error) {
       setHasFailed(true);
       toast.error(
@@ -99,8 +94,41 @@ export default function AdminServicesPage() {
   }, [search, statusFilter, categoryFilter]);
 
   useEffect(() => {
-    loadServices();
-  }, [loadServices]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set("search", search);
+        if (statusFilter !== "all") params.set("status", statusFilter);
+        if (categoryFilter !== "all") params.set("category", categoryFilter);
+        params.set("page", "1");
+        params.set("limit", "20");
+
+        const res = await fetchAPI<AdminService[]>(
+          `/admin/services?${params.toString()}`,
+          { withAuth: true }
+        );
+        if (!cancelled) setServices(res.data ?? []);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load services"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [search, statusFilter, categoryFilter]);
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -124,7 +152,6 @@ export default function AdminServicesPage() {
         body: JSON.stringify({ status: newStatus, isActive: newIsActive }),
       });
       toast.success(`Service ${newStatus} successfully`);
-      setEditTarget(null);
       await loadServices();
     } catch (error) {
       toast.error(

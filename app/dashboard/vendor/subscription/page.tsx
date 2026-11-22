@@ -129,8 +129,33 @@ export default function SubscriptionPage() {
   }, []);
 
   useEffect(() => {
-    loadOverview();
-  }, [loadOverview]);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasFailed(false);
+      try {
+        const res = await fetchAPI<VendorOverview>("/vendor/overview", {
+          withAuth: true,
+        });
+        if (!cancelled) setOverview(res.data ?? null);
+      } catch (error) {
+        if (!cancelled) {
+          setHasFailed(true);
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load subscription"
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleUpgrade = async () => {
     setIsUpgrading(true);
@@ -215,8 +240,10 @@ export default function SubscriptionPage() {
             onClick={() => router.push("/dashboard/vendor")}
             className="gap-2"
           >
-            <Store className="w-4 h-4" />
-            Back to Overview
+            <span className="flex items-center gap-2">
+              <Store className="w-4 h-4" />
+              Back to Overview
+            </span>
           </Button>
         }
       />
